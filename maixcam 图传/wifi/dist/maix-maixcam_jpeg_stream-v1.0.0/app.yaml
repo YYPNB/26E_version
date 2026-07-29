@@ -1,0 +1,10 @@
+id: maixcam_jpeg_stream
+name: MaixCAM JPEG Stream
+version: 1.0.0
+author: user
+desc: Stream MaixCAM camera frames to a browser over WiFi.
+files:
+  - app.yaml
+  - main.py
+  - maixcam_wifi_webrtc.py
+icon: app.png
