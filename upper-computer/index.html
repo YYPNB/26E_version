@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>钢球运动图传与试验记录</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">MAIXCAM PRO · WEBRTC</p>
+        <h1>钢球运动图传与试验记录</h1>
+      </div>
+      <div class="connection-state" id="connectionState" data-state="offline">
+        <span class="state-dot"></span>
+        <span id="connectionText">未连接</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="card live-card">
+        <div class="card-heading">
+          <div>
+            <p class="section-label">LIVE VIEW</p>
+            <h2>实时画面</h2>
+          </div>
+          <div class="metrics">
+            <span id="resolutionMetric">-- × --</span>
+            <span id="fpsMetric">-- FPS</span>
+            <span id="latencyMetric">等待视频</span>
+          </div>
+        </div>
+
+        <div class="stage" id="stage">
+          <video id="remoteVideo" autoplay muted playsinline></video>
+          <canvas id="liveCanvas" width="320" height="180"></canvas>
+          <div class="empty-state" id="emptyState">
+            <div class="camera-mark"></div>
+            <strong>等待 MaixCAM Pro 视频</strong>
+            <span>输入设备 IP 后点击“连接设备”</span>
+          </div>
+          <div class="record-badge hidden" id="recordBadge">
+            <i></i> REC <span id="recordClock">00:00</span>
+          </div>
+          <button class="fullscreen-button" id="fullscreenButton" type="button" title="全屏显示">全屏</button>
+        </div>
+
+        <div class="connection-form">
+          <label for="deviceAddress">设备 IP</label>
+          <input id="deviceAddress" inputmode="url" autocomplete="off" placeholder="例如 192.168.10.25" spellcheck="false">
+          <button class="button primary" id="connectButton" type="button">连接设备</button>
+        </div>
+        <p class="hint">电脑与 MaixCAM Pro 需在同一局域网。默认使用现有程序的 WebRTC 信令端口 8001。</p>
+      </section>
+
+      <aside class="side-column">
+        <section class="card test-card">
+          <p class="section-label">TEST CONTROL</p>
+          <h2>本次测试</h2>
+          <label class="field-label" for="testName">测试名称</label>
+          <input id="testName" maxlength="64" placeholder="例如 阶跃响应-01">
+          <div class="record-info">
+            <span>录像时长</span><strong id="durationValue">00:00</strong>
+            <span>已写入</span><strong id="sizeValue">0 B</strong>
+          </div>
+          <button class="button record" id="startTestButton" type="button" disabled>开始测试并录像</button>
+          <button class="button danger hidden" id="stopTestButton" type="button">结束测试并保存</button>
+          <p class="hint" id="recordHint">连接视频后即可开始测试。录像为 WebM 格式。</p>
+        </section>
+
+        <section class="card library-card">
+          <div class="card-heading compact">
+            <div>
+              <p class="section-label">PLAYBACK</p>
+              <h2>测试回放</h2>
+            </div>
+            <button class="button ghost small" id="openVideoButton" type="button">打开视频</button>
+          </div>
+          <div class="recording-list" id="recordingList">
+            <p class="list-empty">还没有测试录像</p>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <dialog id="playbackDialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="section-label">REPLAY</p>
+          <h2 id="playbackTitle">测试回放</h2>
+        </div>
+        <button class="close-button" id="closePlaybackButton" type="button" aria-label="关闭">×</button>
+      </div>
+      <video id="playbackVideo" controls playsinline></video>
+      <div class="playback-tools">
+        <button class="button ghost small" data-skip="-5" type="button">后退 5 秒</button>
+        <label>倍速
+          <select id="playbackRate">
+            <option value="0.25">0.25×</option>
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
+        <button class="button ghost small" data-skip="5" type="button">前进 5 秒</button>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>
