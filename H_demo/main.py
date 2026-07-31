@@ -1,4 +1,4 @@
-from maix import camera, display, image, nn, app, time, sys
+from maix import camera, display, image, nn, app, time, sys, uart
 
 from ball_position import (
     AdaptiveAlphaBetaFilter,
@@ -41,7 +41,7 @@ AXIS_START_PX = (40, 112)
 AXIS_END_PX = (280, 112)
 AXIS_START_CM = 0       # cm
 AXIS_END_CM = 25          # cm
-DETECTION_CONFIDENCE = 0.50
+DETECTION_CONFIDENCE = 0.40
 
 # 根据设备选择对应模型；不支持的设备直接报错，避免误加载模型。
 # MAIXCAM_MODEL_PATH = "models/yolo26_ball_my_maixcam_maixcam_yolo26/yolo26_ball_my_maixcam.mud"
@@ -73,7 +73,7 @@ AXIS_END_PX = (detector.input_width() - 5, detector.input_height() // 2)
 cam = camera.Camera(detector.input_width(), detector.input_height(), detector.input_format())
 disp = display.Display()
 position_filter = AdaptiveAlphaBetaFilter()
-
+serial = uart.UART("/dev/ttyS0", 115200)
 if USE_RTSP:
     from maix import rtsp
     cam2 = cam.add_channel(320, 180, image.Format.FMT_YVU420SP)
@@ -192,8 +192,14 @@ while not app.need_exit():
         #   frame_time_ms = now_ms            本次结果的时间戳，单位：毫秒
         #
         # 如果使用文本串口协议，可以在初始化好 serial 后取消下面两行的注释：
-        # tx_data = f"$BALL,1,{position_cm:.2f},{position_filter.vx:.1f},{ball.score:.2f},{now_ms}*\n"
-        # serial.write_str(tx_data)
+        tx_data = (
+            f"$BALL,1,"
+            f"{position_cm:.2f},"
+            f"{position_filter.vx:.1f},"
+            f"{ball.score:.2f},"
+            f"{now_ms}*\r\n"
+        )
+        serial.write_str(tx_data)
     else:
         position_filter.mark_missing(now_ms)
 
@@ -206,7 +212,8 @@ while not app.need_exit():
         # ==================== 丢检时也要向主控发送 ====================
         # 应发送 valid=0，明确告诉主控当前坐标无效；不能继续把旧坐标当成新数据。
         # 文本协议示例：
-        # serial.write_str(f"$BALL,0,0,0,0,{now_ms}*\n")
+        tx_data = f"$BALL,0,0,0,0,{now_ms}*\r\n"
+        serial.write_str(tx_data)
 
     fps_str = "FPS:" + str(0 if loop_ms == 0 else 1000//loop_ms)
     img.draw_string(
